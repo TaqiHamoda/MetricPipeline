@@ -33,6 +33,8 @@ if __name__ == "__main__":
     colormap = Colormap(colormap_path)
 
     def run_pipeline(d):
+        print(f"Processing {d}")
+
         imgs = []
         for img in os.listdir(f"{d}/{masks_dir}"):
             if "_overlay" in img:
@@ -54,13 +56,13 @@ if __name__ == "__main__":
             camera_type = info["camera_type"]
             visibility = info["visibility"]
 
-        exe.submit(lambda: (print(f"Processing {d}"), pipeline.processImages(
+        pipeline.processImages(
             imgs_path=tqdm.tqdm([f"{d}/{images_dir}/{img}.jpg" for img in imgs]),
             masks_path=[f"{d}/{masks_dir}/{img}.png" for img in imgs],
             depths_path=[f"{d}/{depths_dir}/{img}.png" for img in imgs],
             camera_type=camera_type,
             visibility=visibility,
-        )))
+        )
 
         pipeline.toFile(f"{d}/{metric_file}")
 
