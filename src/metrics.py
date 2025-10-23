@@ -6,15 +6,50 @@ from typing import List
 from .cameras import Sensor
 
 
-def ground_resolution(sensor: Sensor, u: np.ndarray, v:np.ndarray, z: np.ndarray) -> float:
-    # Source: https://github.com/xueleichen/PSNR-SSIM-UCIQE-UIQM-Python/blob/main/nevaluate.py
+def calculate_ground_resolution(sensor: Sensor, u: np.ndarray, v:np.ndarray, z: np.ndarray) -> float:
     x = z * (u - sensor.cx) / sensor.fx
     y = z * (v - sensor.cy) / sensor.fy
 
     return np.linalg.norm((x[1] - x[0], y[1] - y[0], z[1] - z[0])) / np.linalg.norm((u, v))  # mm / px
 
 
+def calculate_slant(sensor: Sensor, depth: np.ndarray, n_ref: np.ndarray = np.array((0, -1, 0))) -> float:
+    # v is row index (y-coordinate), u is col index (x-coordinate)
+    v, u = np.indices(depth.shape) 
+
+    # Calculate 3D coordinates (X, Y, Z) for desk pixels
+    Z = depth.flatten()
+    X = Z * (u.flatten() - sensor.cx) / sensor.fx
+    Y = Z * (v.flatten() - sensor.cy) / sensor.fy
+
+    # Center the points by subtracting the centroid
+    points = np.stack((X, Y, Z), axis=1)
+    centroid = np.mean(points, axis=0)
+    points_centered = points - centroid
+
+    # Perform SVD on the centered points
+    # The normal vector is the eigenvector corresponding to the smallest singular value
+    _, _, Vt = np.linalg.svd(points_centered)
+
+    # The normal vector is the last row of Vt (corresponding to the smallest singular value in S)
+    normal_vector = Vt[-1, :]
+    if normal_vector[2] < 0:  # Ensure the normal vector points towards the camera
+        normal_vector = -normal_vector
+
+    # Ensure both normals are unit vectors
+    n_unit = normal_vector / np.linalg.norm(normal_vector)
+    n_ref_unit = n_ref / np.linalg.norm(n_ref)
+
+    # Clamp the dot product to [-1, 1] to avoid floating-point errors
+    dot_product = np.clip(np.dot(n_unit, n_ref_unit), -1.0, 1.0)
+    angle = np.arccos(np.abs(dot_product))
+
+    return np.degrees(angle)
+
+
 def calculate_UCIQE(img: np.ndarray) -> float:
+    # Source: https://github.com/xueleichen/PSNR-SSIM-UCIQE-UIQM-Python/blob/main/nevaluate.py
+
     lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
 
     #1st term
@@ -35,13 +70,13 @@ def calculate_UCIQE(img: np.ndarray) -> float:
     return 0.4680 * sc + 0.2745 * conl + 0.2576 * satur / chroma.size  # c1 * sc + c2 * conl + c3 * us
 
 
-def calculate_eme_logamee(img: np.ndarray, gray: np.ndarray, blocksize=8, gamma=1026, k=1026) -> List[float]:
+def calculate_eme_logamee(img: np.ndarray, blocksize=8, gamma=1026, k=1026) -> List[float]:
     # Source: https://github.com/xueleichen/PSNR-SSIM-UCIQE-UIQM-Python/blob/main/nevaluate.py
 
     emes = []
     for c in range(4):
         if c == 3:
-            ch = gray
+            ch = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         else:
             ch = np.round(img[:, :, i] * sobel(img[:, :, i])).astype(np.uint8)
 
@@ -94,7 +129,6 @@ def calculate_eme_logamee(img: np.ndarray, gray: np.ndarray, blocksize=8, gamma=
 
 def calculate_UIQM(img: np.ndarray) -> float:
     # Source: https://github.com/xueleichen/PSNR-SSIM-UCIQE-UIQM-Python/blob/main/nevaluate.py
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     rgl = np.sort(img[:, :, 2] - img[:, :, 1], axis=None)
     ybl = np.sort((img[:, :, 2] + img[:, :, 1]) / 2 - img[:, :, 0], axis=None)
@@ -109,7 +143,7 @@ def calculate_UIQM(img: np.ndarray) -> float:
 
     uicm = -0.0268 * np.linalg.norm((urg, uyb)) + 0.1586 * np.sqrt(s2rg + s2yb)
 
-    Beme, Geme, Reme, uiconm = calculate_eme_logamee(img, gray)
+    Beme, Geme, Reme, uiconm = calculate_eme_logamee(img)
     uism = 0.299 * Reme + 0.587 * Geme + 0.114 * Beme
 
     return 0.0282 * uicm + 0.2953 * uism + 3.5753 * uiconm

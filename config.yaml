@@ -1,0 +1,15 @@
+target_classes: ['A', 'B', 'C', 'D']
+
+masks_dir: masks/
+images_dir: images/
+depths_dir: depths/
+info_file: info.yaml
+camera_file: cams.xml
+metric_file: metrics.csv
+
+colormap_path: colormap.csv
+
+dirs:
+- dir1/
+- dir2
+- dir3/
