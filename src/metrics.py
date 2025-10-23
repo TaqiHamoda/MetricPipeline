@@ -22,38 +22,45 @@ def calculate_ground_resolution(sensor: Sensor, u: np.ndarray, v:np.ndarray, z: 
     return (x_res/u_res + y_res/v_res) / 2  # mm / px
 
 
-def calculate_slant(sensor: Sensor, u: np.ndarray, v:np.ndarray, z: np.ndarray) -> float:
-    x = z * (u - sensor.cx) / sensor.fx
-    y = z * (v - sensor.cy) / sensor.fy
+def calculate_slant(sensor: Sensor, depth: np.ndarray) -> float:
+    # v is row index (y-coordinate), u is col index (x-coordinate)
+    v, u = np.indices(depth.shape)
+
+    # Calculate 3D coordinates (X, Y, Z) for desk pixels
+    indices = depth.flatten() > 0
+
+    Z = depth.flatten()[indices]
+    X = Z * (u.flatten()[indices] - sensor.cx) / sensor.fx
+    Y = Z * (v.flatten()[indices] - sensor.cy) / sensor.fy
 
     # Create the design matrix for the polynomial terms
     A = np.vstack([
-        np.ones_like(z),  # p1
-        x,                # p2 * x
-        y,                # p3 * y
-        x**2,             # p4 * x^2
-        x * y,            # p5 * x * y
-        y**2,             # p6 * y^2
-        x**2 * y,         # p7 * x^2 * y
-        x * y**2,         # p8 * x * y^2
-        y**3              # p9 * y^3
+        np.ones_like(Z),  # p1
+        X,                # p2 * x
+        Y,                # p3 * y
+        X**2,             # p4 * x^2
+        X * Y,            # p5 * x * y
+        Y**2,             # p6 * y^2
+        X**2 * Y,         # p7 * x^2 * y
+        X * Y**2,         # p8 * x * y^2
+        Y**3              # p9 * y^3
     ]).T
 
     # Perform least squares fitting
     # coeffs are p1, p2, p3, p4, p5, p6, p7, p8, and p9
-    coeffs, _, _, _ = np.linalg.lstsq(A, z, rcond=None)
+    coeffs, _, _, _ = np.linalg.lstsq(A, Z, rcond=None)
 
     # Calculate the fitted z values using the polynomial equation
     z_fitted = (
         coeffs[0] +
-        coeffs[1] * x +
-        coeffs[2] * y +
-        coeffs[3] * x**2 +
-        coeffs[4] * x * y +
-        coeffs[5] * y**2 +
-        coeffs[6] * x**2 * y +
-        coeffs[7] * x * y**2 +
-        coeffs[8] * y**3
+        coeffs[1] * X +
+        coeffs[2] * Y +
+        coeffs[3] * X**2 +
+        coeffs[4] * X * Y +
+        coeffs[5] * Y**2 +
+        coeffs[6] * X**2 * Y +
+        coeffs[7] * X * Y**2 +
+        coeffs[8] * Y**3
     )
 
     n_z = -1

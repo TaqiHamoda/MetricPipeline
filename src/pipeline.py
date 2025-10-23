@@ -1,6 +1,7 @@
 import numpy as np
 import cv2, csv, gc
 from typing import List, Tuple, Dict
+from time import perf_counter
 
 from .colormap import Colormap
 from .cameras import Sensor
@@ -50,9 +51,23 @@ class Pipeline:
         visibility: float
     ):
         for img_path, mask_path, depth_path in zip(imgs_path, masks_path, depths_path):
+            start = perf_counter()
             img = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
             depth = cv2.imread(depth_path, cv2.IMREAD_UNCHANGED)
             mask = cv2.imread(mask_path, cv2.IMREAD_UNCHANGED)
+            print(f"IO: {perf_counter() - start} seconds")
+
+            start = perf_counter()
+            slant = calculate_slant(self.sensor, depth)
+            print(f"slant: {perf_counter() - start} seconds")
+
+            start = perf_counter()
+            uiqm = calculate_UIQM(img)
+            print(f"uiqm: {perf_counter() - start} seconds")
+
+            start = perf_counter()
+            ucique = calculate_UCIQE(img)
+            print(f"ucique: {perf_counter() - start} seconds")
 
             for color in np.unique(mask.reshape(-1, mask.shape[-1]), axis=0):
                 label = self.colormap.get_label(tuple(int(c) for c in color))
@@ -76,9 +91,9 @@ class Pipeline:
                     "avg. depth (mm)": np.mean(depth[u, v]),
                     "area (pixels)": u.size,
                     "ground res. (mm / pixel)": calculate_ground_resolution(self.sensor, u, v, depth[u, v]),
-                    "camera slant (degrees)": calculate_slant(self.sensor, u, v, depth[u, v]),
-                    "UIQM": calculate_UIQM(img),
-                    "UCIQUE": calculate_UCIQE(img)
+                    "camera slant (degrees)": slant,
+                    "UIQM": uiqm,
+                    "UCIQUE": ucique
                 })
 
             del img, depth, mask
