@@ -60,7 +60,7 @@ class Pipeline:
                 if label is None or label.split('_')[0] not in self.target_classes:
                     continue
 
-                indices = np.all(mask == color, axis=2)
+                indices = np.all(mask == color, axis=2) and depth > 0
                 u, v = np.where(indices)
 
                 self.data.append({
@@ -76,7 +76,7 @@ class Pipeline:
                     "avg. depth (mm)": np.mean(depth[u, v]),
                     "area (pixels)": u.size,
                     "ground res. (mm / pixel)": calculate_ground_resolution(self.sensor, u, v, depth[u, v]),
-                    "camera slant (degrees)": calculate_slant(self.sensor, depth),
+                    "camera slant (degrees)": calculate_slant(self.sensor, u, v, depth[u, v]),
                     "UIQM": calculate_UIQM(img),
                     "UCIQUE": calculate_UCIQE(img)
                 })
