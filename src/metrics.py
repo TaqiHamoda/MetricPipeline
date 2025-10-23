@@ -13,38 +13,54 @@ def calculate_ground_resolution(sensor: Sensor, u: np.ndarray, v:np.ndarray, z: 
     return np.linalg.norm((x[1] - x[0], y[1] - y[0], z[1] - z[0])) / np.linalg.norm((u, v))  # mm / px
 
 
-def calculate_slant(sensor: Sensor, depth: np.ndarray, n_ref: np.ndarray = np.array((0, -1, 0))) -> float:
+def calculate_slant(sensor: Sensor, depth: np.ndarray) -> float:
     # v is row index (y-coordinate), u is col index (x-coordinate)
-    v, u = np.indices(depth.shape) 
+    v, u = np.indices(depth.shape)
 
     # Calculate 3D coordinates (X, Y, Z) for desk pixels
-    Z = depth.flatten()
-    X = Z * (u.flatten() - sensor.cx) / sensor.fx
-    Y = Z * (v.flatten() - sensor.cy) / sensor.fy
+    indices = depth.flatten() != 0
 
-    # Center the points by subtracting the centroid
-    points = np.stack((X, Y, Z), axis=1)
-    centroid = np.mean(points, axis=0)
-    points_centered = points - centroid
+    Z = depth.flatten()[indices]
+    X = Z * (u.flatten()[indices] - sensor.cx) / sensor.fx
+    Y = Z * (v.flatten()[indices] - sensor.cy) / sensor.fy
 
-    # Perform SVD on the centered points
-    # The normal vector is the eigenvector corresponding to the smallest singular value
-    _, _, Vt = np.linalg.svd(points_centered)
+    # Create the design matrix for the polynomial terms
+    A = np.vstack([
+        np.ones_like(Z),  # p1
+        X,                # p2 * x
+        Y,                # p3 * y
+        X**2,             # p4 * x^2
+        X * Y,            # p5 * x * y
+        Y**2,             # p6 * y^2
+        X**2 * Y,         # p7 * x^2 * y
+        X * Y**2,         # p8 * x * y^2
+        Y**3              # p9 * y^3
+    ]).T
 
-    # The normal vector is the last row of Vt (corresponding to the smallest singular value in S)
-    normal_vector = Vt[-1, :]
-    if normal_vector[2] < 0:  # Ensure the normal vector points towards the camera
-        normal_vector = -normal_vector
+    # Perform least squares fitting
+    # coeffs are p1, p2, p3, p4, p5, p6, p7, p8, and p9
+    coeffs, _, _, _ = np.linalg.lstsq(A, Z, rcond=None)
 
-    # Ensure both normals are unit vectors
-    n_unit = normal_vector / np.linalg.norm(normal_vector)
-    n_ref_unit = n_ref / np.linalg.norm(n_ref)
+    # Calculate the fitted z values using the polynomial equation
+    z_fitted = (
+        coeffs[0] +
+        coeffs[1] * X +
+        coeffs[2] * Y +
+        coeffs[3] * X**2 +
+        coeffs[4] * X * Y +
+        coeffs[5] * Y**2 +
+        coeffs[6] * X**2 * Y +
+        coeffs[7] * X * Y**2 +
+        coeffs[8] * Y**3
+    )
 
-    # Clamp the dot product to [-1, 1] to avoid floating-point errors
-    dot_product = np.clip(np.dot(n_unit, n_ref_unit), -1.0, 1.0)
-    angle = np.arccos(np.abs(dot_product))
+    n_z = -1
+    n_x = coeffs[1]  # Coefficient for x
+    n_y = coeffs[2]  # Coefficient for y
 
-    return np.degrees(angle)
+    # Calculate angle with respect to the vertical using the magnitude of the linear normal vector
+    normal_magnitude = np.sqrt(n_x ** 2 + n_y ** 2 + n_z ** 2)
+    return np.degrees(np.arccos(n_z / (normal_magnitude + 1e-6)))
 
 
 def calculate_UCIQE(img: np.ndarray) -> float:
@@ -78,10 +94,10 @@ def calculate_eme_logamee(img: np.ndarray, blocksize=8, gamma=1026, k=1026) -> L
         if c == 3:
             ch = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         else:
-            ch = np.round(img[:, :, i] * sobel(img[:, :, i])).astype(np.uint8)
+            ch = np.round(img[:, :, c] * sobel(img[:, :, c])).astype(np.uint8)
 
-        num_x = np.ceil(ch.shape[0] / blocksize)
-        num_y = np.ceil(ch.shape[1] / blocksize)
+        num_x = int(np.ceil(ch.shape[0] / blocksize))
+        num_y = int(np.ceil(ch.shape[1] / blocksize))
 
         eme = 0
         w = 1 / (num_x * num_y)
@@ -100,8 +116,8 @@ def calculate_eme_logamee(img: np.ndarray, blocksize=8, gamma=1026, k=1026) -> L
                     yrb = ch.shape[1]
 
                 block = ch[xlb:xrb, ylb:yrb]
-                blockmin = np.float(np.min(block))
-                blockmax = np.float(np.max(block))
+                blockmin = np.astype(np.min(block), float)
+                blockmax = np.astype(np.max(block), float)
 
                 if c == 3:  # Logamee
                     top = k * (blockmax - blockmin) / (k - blockmin)

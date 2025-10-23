@@ -57,7 +57,7 @@ class Pipeline:
             for color in np.unique(mask.reshape(-1, mask.shape[-1]), axis=0):
                 label = self.colormap.get_label(tuple(int(c) for c in color))
 
-                if label.split('_')[0] not in self.target_classes:
+                if label is None or label.split('_')[0] not in self.target_classes:
                     continue
 
                 indices = np.all(mask == color, axis=2)
@@ -65,7 +65,7 @@ class Pipeline:
 
                 self.data.append({
                     "label": label,
-                    "image": img.split('/')[-1].split('.')[:-1],
+                    "image": img_path.split('/')[-1].split('.')[:-1],
                     "camera": camera_type,
                     "res. width": depth.shape[1],
                     "res. height": depth.shape[0],

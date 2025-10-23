@@ -1,4 +1,5 @@
 import yaml, os, gc, tqdm
+from concurrent.futures import ThreadPoolExecutor
 
 from src.parsers import Agisoft, Meshroom
 from src.colormap import Colormap
@@ -14,6 +15,7 @@ if __name__ == "__main__":
         config_data = yaml.safe_load(file)
 
     target_classes = config_data["target_classes"]
+    thread_count = config_data["thread_count"]
 
     masks_dir = config_data["masks_dir"]
     images_dir = config_data["images_dir"]
@@ -30,37 +32,38 @@ if __name__ == "__main__":
 
     colormap = Colormap(colormap_path)
 
-    for d in tqdm.tqdm(dirs):
-        imgs = []
-        for img in os.listdir(f"{d}/{masks_dir}"):
-            if "_overlay" in img:
-                continue
+    with ThreadPoolExecutor(max_workers=thread_count) as exe:
+        for d in dirs:
+            imgs = []
+            for img in os.listdir(f"{d}/{masks_dir}"):
+                if "_overlay" in img:
+                    continue
 
-            imgs.append(img.split('.')[:-1])
+                imgs.append("".join(img.split('.')[:-1]))
 
-        sensor = Agisoft().parse(f"{d}/{camera_file}")[0] if ".xml" in camera_file else Meshroom().parse(f"{d}/{camera_file}")[0]
+            sensor = Agisoft().parse(f"{d}/{camera_file}")[0] if ".xml" in camera_file else Meshroom().parse(f"{d}/{camera_file}")[0]
 
-        pipeline = Pipeline(
-            sensor = sensor,
-            colormap=colormap,
-            target_classes=target_classes
-        )
+            pipeline = Pipeline(
+                sensor = sensor,
+                colormap=colormap,
+                target_classes=target_classes
+            )
 
-        with open(f"{d}/{info_file}", "r") as f:
-            info = yaml.safe_load(f)
+            with open(f"{d}/{info_file}", "r") as f:
+                info = yaml.safe_load(f)
 
-            camera_type = info["camera_type"]
-            visibility = info["visibility"]
+                camera_type = info["camera_type"]
+                visibility = info["visibility"]
 
-        pipeline.processImages(
-            imgs_path=[f"{d}/{images_dir}/{img}.jpg" for img in imgs],
-            masks_path=[f"{d}/{masks_dir}/{img}.png" for img in imgs],
-            depths_masks=[f"{d}/{depths_dir}/{img}.png" for img in imgs],
-            camera_type=camera_type,
-            visibility=visibility,
-        )
+            exe.submit(lambda: (print(f"Processing {d}"), pipeline.processImages(
+                imgs_path=tqdm.tqdm([f"{d}/{images_dir}/{img}.jpg" for img in imgs]),
+                masks_path=[f"{d}/{masks_dir}/{img}.png" for img in imgs],
+                depths_path=[f"{d}/{depths_dir}/{img}.png" for img in imgs],
+                camera_type=camera_type,
+                visibility=visibility,
+            )))
 
-        pipeline.toFile(f"{d}/{metric_file}")
+            pipeline.toFile(f"{d}/{metric_file}")
 
-        del pipeline
-        gc.collect()
+            del pipeline
+            gc.collect()

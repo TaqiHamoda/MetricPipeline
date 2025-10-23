@@ -1,15 +1,62 @@
 target_classes: ['A', 'B', 'C', 'D']
+thread_count: 18
 
 masks_dir: masks/
 images_dir: images/
-depths_dir: depths/
+depths_dir: depthmaps/
 info_file: info.yaml
 camera_file: cams.xml
 metric_file: metrics.csv
 
-colormap_path: colormap.csv
+colormap_path: /media/vicorob/Filesystem2/Taqi/colormap.csv
 
 dirs:
-- dir1/
-- dir2
-- dir3/
+- /media/vicorob/Filesystem2/Taqi/Processed/250320/plot1_m1/18mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250320/plot1_m1/24mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250320/plot1_m1/GPS
+- /media/vicorob/Filesystem2/Taqi/Processed/250320/plot1_m2/18mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250320/plot1_m2/24mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250320/plot1_m2/GPS
+- /media/vicorob/Filesystem2/Taqi/Processed/250320/plot1_m3/18mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250320/plot1_m3/24mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250320/plot1_m3/GPS
+- /media/vicorob/Filesystem2/Taqi/Processed/250326/plot1_m1/18mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250326/plot1_m1/24mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250326/plot1_m1/GPS
+- /media/vicorob/Filesystem2/Taqi/Processed/250326/plot1_m2/18mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250326/plot1_m2/24mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250326/plot1_m2/GPS
+- /media/vicorob/Filesystem2/Taqi/Processed/250326/plot1_m3/18mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250326/plot1_m3/24mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250326/plot1_m3/GPS
+- /media/vicorob/Filesystem2/Taqi/Processed/250327/plot1_m1/18mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250327/plot1_m1/24mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250327/plot1_m1/GPS
+- /media/vicorob/Filesystem2/Taqi/Processed/250327/plot1_m2/18mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250327/plot1_m2/24mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250327/plot1_m2/GPS
+- /media/vicorob/Filesystem2/Taqi/Processed/250327/plot1_m3/18mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250327/plot1_m3/24mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250327/plot1_m3/GPS
+- /media/vicorob/Filesystem2/Taqi/Processed/250402/plot1_m1/18mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250402/plot1_m1/24mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250402/plot1_m1/GPS
+- /media/vicorob/Filesystem2/Taqi/Processed/250402/plot1_m2/18mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250402/plot1_m2/24mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250402/plot1_m2/GPS
+- /media/vicorob/Filesystem2/Taqi/Processed/250402/plot1_m3/18mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250402/plot1_m3/24mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250402/plot1_m3/GPS
+- /media/vicorob/Filesystem2/Taqi/Processed/250409/plot1_m1/18mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250409/plot1_m1/24mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250409/plot1_m1/GPS
+- /media/vicorob/Filesystem2/Taqi/Processed/250409/plot1_m2/18mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250409/plot1_m2/24mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250409/plot1_m3/18mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250409/plot1_m3/24mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250506/plot1_m2/18mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250506/plot1_m2/24mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250506/plot1_m2/GPS
+- /media/vicorob/Filesystem2/Taqi/Processed/250506/plot1_m3/18mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250506/plot1_m3/24mm
+- /media/vicorob/Filesystem2/Taqi/Processed/250506/plot1_m3/GPS
