@@ -13,10 +13,13 @@ def calculate_ground_resolution(sensor: Sensor, u: np.ndarray, v:np.ndarray, z: 
     min_x, max_x = np.argmin(x), np.argmax(x)
     min_y, max_y = np.argmin(y), np.argmax(y)
 
-    x_res = np.linalg.norm((x[max_x] - x[min_x], y[max_x] - y[min_x], z[max_x] - z[min_x])) / np.linalg.norm((u, v))  # mm / px
-    y_res = np.linalg.norm((x[max_y] - x[min_y], y[max_y] - y[min_y], z[max_y] - z[min_y])) / np.linalg.norm((u, v))  # mm / px
+    u_res = np.linalg.norm((u[max_x] - u[min_x], v[max_x] - v[min_x]))  # px
+    v_res = np.linalg.norm((u[max_y] - u[min_y], v[max_y] - v[min_y]))  # px
 
-    return (x_res + y_res) / 2
+    x_res = np.linalg.norm((x[max_x] - x[min_x], y[max_x] - y[min_x]))  # mm
+    y_res = np.linalg.norm((x[max_y] - x[min_y], y[max_y] - y[min_y]))  # mm
+
+    return (x_res/u_res + y_res/v_res) / 2  # mm / px
 
 
 def calculate_slant(sensor: Sensor, depth: np.ndarray) -> float:
