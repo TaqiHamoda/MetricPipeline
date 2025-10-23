@@ -51,23 +51,13 @@ class Pipeline:
         visibility: float
     ):
         for img_path, mask_path, depth_path in zip(imgs_path, masks_path, depths_path):
-            start = perf_counter()
             img = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
             depth = cv2.imread(depth_path, cv2.IMREAD_UNCHANGED)
             mask = cv2.imread(mask_path, cv2.IMREAD_UNCHANGED)
-            print(f"IO: {perf_counter() - start} seconds")
 
-            start = perf_counter()
             slant = calculate_slant(self.sensor, depth)
-            print(f"slant: {perf_counter() - start} seconds")
-
-            start = perf_counter()
             uiqm = calculate_UIQM(img)
-            print(f"uiqm: {perf_counter() - start} seconds")
-
-            start = perf_counter()
             ucique = calculate_UCIQE(img)
-            print(f"ucique: {perf_counter() - start} seconds")
 
             for color in np.unique(mask.reshape(-1, mask.shape[-1]), axis=0):
                 label = self.colormap.get_label(tuple(int(c) for c in color))
