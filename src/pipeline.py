@@ -70,7 +70,7 @@ class Pipeline:
 
                 self.data.append({
                     "label": label,
-                    "image": img_path.split('/')[-1].split('.')[:-1],
+                    "image": ''.join(img_path.split('/')[-1].split('.')[:-1]),
                     "camera": camera_type,
                     "res. width": depth.shape[1],
                     "res. height": depth.shape[0],
