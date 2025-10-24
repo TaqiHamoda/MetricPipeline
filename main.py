@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     colormap = Colormap(colormap_path)
 
-    for d in dirs:
+    def run_pipeline(d):
         print(f"Processing {d}")
 
         imgs = []
@@ -68,5 +68,5 @@ if __name__ == "__main__":
         del pipeline
         gc.collect()
 
-    # with ThreadPoolExecutor(max_workers=thread_count) as exe:
-    #     exe.map(run_pipeline, dirs)
+    with ThreadPoolExecutor(max_workers=thread_count) as exe:
+        exe.map(run_pipeline, dirs)
