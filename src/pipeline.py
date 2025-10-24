@@ -65,7 +65,7 @@ class Pipeline:
                 if label is None or label.split('_')[0] not in self.target_classes:
                     continue
 
-                indices = np.all(mask == color, axis=2) and depth > 0
+                indices = np.logical_and(np.all(mask == color, axis=2), depth > 0)
                 u, v = np.where(indices)
 
                 self.data.append({
