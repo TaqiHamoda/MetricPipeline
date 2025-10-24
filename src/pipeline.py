@@ -66,7 +66,7 @@ class Pipeline:
                     continue
 
                 indices = np.logical_and(np.all(mask == color, axis=2), depth > 0)
-                u, v = np.where(indices)
+                v, u = np.where(indices)
 
                 self.data.append({
                     "label": label,
@@ -77,10 +77,10 @@ class Pipeline:
                     "visibility": visibility,
                     "centroid u": np.median(u),
                     "centroid v": np.median(v),
-                    "med. depth (mm)": np.median(depth[u, v]),
-                    "avg. depth (mm)": np.mean(depth[u, v]),
+                    "med. depth (mm)": np.median(depth[v, u]),
+                    "avg. depth (mm)": np.mean(depth[v, u]),
                     "area (pixels)": u.size,
-                    "ground res. (mm / pixel)": calculate_ground_resolution(self.sensor, u, v, depth[u, v]),
+                    "ground res. (mm / pixel)": calculate_ground_resolution(self.sensor, u, v, depth[v, u]),
                     "camera slant (degrees)": slant,
                     "UIQM": uiqm,
                     "UCIQUE": ucique
