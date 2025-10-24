@@ -22,7 +22,7 @@ class Pipeline:
         "area (pixels)",
         "ground res. (mm / pixel)",
         "camera slant (degrees)",
-        # "UIQM",
+        "UIQM",
         "UCIQUE",
     ]
 
@@ -55,7 +55,7 @@ class Pipeline:
             mask = cv2.imread(mask_path, cv2.IMREAD_UNCHANGED)
 
             slant = calculate_slant(self.sensor, depth)
-            # uiqm = calculate_UIQM(img)
+            uiqm = calculate_UIQM(img)
             ucique = calculate_UCIQE(img)
 
             for color in np.unique(mask.reshape(-1, mask.shape[-1]), axis=0):
@@ -81,7 +81,7 @@ class Pipeline:
                     "area (pixels)": u.size,
                     "ground res. (mm / pixel)": calculate_ground_resolution(self.sensor, u, v, depth[u, v]),
                     "camera slant (degrees)": slant,
-                    # "UIQM": uiqm,
+                    "UIQM": uiqm,
                     "UCIQUE": ucique
                 })
 
