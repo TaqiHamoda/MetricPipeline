@@ -47,7 +47,8 @@ if __name__ == "__main__":
         pipeline = Pipeline(
             sensor = sensor,
             colormap=colormap,
-            target_classes=target_classes
+            target_classes=target_classes,
+            output_path=f"{d}/{metric_file}"
         )
 
         with open(f"{d}/{info_file}", "r") as f:
@@ -63,8 +64,6 @@ if __name__ == "__main__":
             camera_type=camera_type,
             visibility=visibility,
         )
-
-        pipeline.toFile(f"{d}/{metric_file}")
 
         del pipeline
         gc.collect()

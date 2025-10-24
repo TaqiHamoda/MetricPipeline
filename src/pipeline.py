@@ -26,18 +26,19 @@ class Pipeline:
         "UCIQUE",
     ]
 
-    def __init__(self, sensor: Sensor, colormap: Colormap, target_classes: Tuple[str]):
+    def __init__(self, sensor: Sensor, colormap: Colormap, target_classes: Tuple[str], output_path: str):
         self.data: List[Dict[str, str]]  = []
 
         self.sensor = sensor
         self.colormap = colormap
         self.target_classes = target_classes
+        self.output_path = output_path
 
-    def toFile(self, file_path):
-        if file_path.split('.')[-1].lower() != 'csv':
-            file_path += '.csv'
+    def toFile(self):
+        if self.output_path.split('.')[-1].lower() != 'csv':
+            self.output_path += '.csv'
 
-        with open(file_path, 'w') as f:
+        with open(self.output_path, 'w') as f:
             writer = csv.DictWriter(f, Pipeline.fields)
             writer.writeheader()
             writer.writerows(self.data)
@@ -84,6 +85,8 @@ class Pipeline:
                     "UIQM": uiqm,
                     "UCIQUE": ucique
                 })
+
+                self.toFile()
 
             del img, depth, mask
             gc.collect()

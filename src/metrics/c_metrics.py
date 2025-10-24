@@ -16,7 +16,7 @@ elif platform.system() == "Windows":
 
 try:
     # Get the absolute path to the library, assuming it's in the same directory
-    lib_path = os.path.join(os.path.dirname('.'), lib_name)
+    lib_path = os.path.join(os.path.dirname(__file__), lib_name)
     lib = ctypes.CDLL(lib_path)
 except OSError as e:
     print(f"Error loading library: {e}")
