@@ -61,7 +61,7 @@ class Pipeline:
             ucique = calculate_UCIQE(img)
 
             start = perf_counter()
-            mask = mask.reshape(-1, mask.shape[-1])
+            print(mask[np.all(mask != (0, 0, 0), axis=2)])
             colors = {tuple(c) for c in mask[np.all(mask != (0, 0, 0), axis=2)]}
             print(f"colors calculation: {perf_counter() - start}")
 
