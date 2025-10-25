@@ -65,7 +65,7 @@ class Pipeline:
             print(f"C++ Metrics: {perf_counter() - start}")
 
             start = perf_counter()
-            colors = np.unique(mask.reshape(-1, mask.shape[-1]), axis=0)
+            colors = {tuple(c) for c in mask.reshape(-1, mask.shape[-1])}
             print(f"colors calculation: {perf_counter() - start}")
 
             for color in colors:
