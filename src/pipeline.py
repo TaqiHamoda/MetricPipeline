@@ -62,10 +62,7 @@ class Pipeline:
 
             start = perf_counter()
             mask = mask.reshape(-1, mask.shape[-1])
-            print(f"reshape calculation: {perf_counter() - start}")
-
-            start = perf_counter()
-            colors = {tuple(c) for c in mask[mask != (0, 0, 0)]}
+            colors = {tuple(c) for c in mask[np.all(mask != (0, 0, 0), axis=2)]}
             print(f"colors calculation: {perf_counter() - start}")
 
             for color in colors:
