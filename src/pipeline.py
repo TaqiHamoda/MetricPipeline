@@ -52,37 +52,31 @@ class Pipeline:
         visibility: float
     ):
         for img_path, mask_path, depth_path in zip(imgs_path, masks_path, depths_path):
-            start = perf_counter()
             img = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
             depth = cv2.imread(depth_path, cv2.IMREAD_UNCHANGED)
             mask = cv2.imread(mask_path, cv2.IMREAD_UNCHANGED)
-            print(f"read io: {perf_counter() - start}")
 
-            start = perf_counter()
             slant = calculate_slant(self.sensor, depth)
             uiqm = calculate_UIQM(img)
             ucique = calculate_UCIQE(img)
-            print(f"C++ Metrics: {perf_counter() - start}")
 
             start = perf_counter()
-            colors = {tuple(c) for c in mask.reshape(-1, mask.shape[-1])}
+            mask = mask.reshape(-1, mask.shape[-1])
+            print(f"reshape calculation: {perf_counter() - start}")
+
+            start = perf_counter()
+            colors = {tuple(c) for c in mask[mask != (0, 0, 0)]}
             print(f"colors calculation: {perf_counter() - start}")
 
             for color in colors:
-
-                start = perf_counter()
                 label = self.colormap.get_label(tuple(int(c) for c in color))
-                print(f"colormap access: {perf_counter() - start}")
 
                 if label is None or label.split('_')[0] not in self.target_classes:
                     continue
 
-                start = perf_counter()
                 indices = np.logical_and(np.all(mask == color, axis=2), depth > 0)
                 v, u = np.where(indices)
-                print(f"u, v calculation: {perf_counter() - start}")
 
-                start = perf_counter()
                 self.data.append({
                     "label": label,
                     "image": ''.join(img_path.split('/')[-1].split('.')[:-1]),
@@ -100,11 +94,8 @@ class Pipeline:
                     "UIQM": uiqm,
                     "UCIQUE": ucique
                 })
-                print(f"python metrics: {perf_counter() - start}")
 
-                start = perf_counter()
                 self.toFile()
-                print(f"to file: {perf_counter() - start}")
 
             del img, depth, mask
             gc.collect()
