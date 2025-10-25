@@ -60,11 +60,7 @@ class Pipeline:
             uiqm = calculate_UIQM(img)
             ucique = calculate_UCIQE(img)
 
-            start = perf_counter()
-            print(mask[np.all(mask != (0, 0, 0), axis=2)])
-            colors = {tuple(c) for c in mask[np.all(mask != (0, 0, 0), axis=2)]}
-            print(f"colors calculation: {perf_counter() - start}")
-
+            colors = {tuple(c) for c in mask[np.all(mask != (0, 0, 0), axis=2)]}  # Get unique colors
             for color in colors:
                 label = self.colormap.get_label(tuple(int(c) for c in color))
 
