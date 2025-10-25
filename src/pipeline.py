@@ -64,8 +64,15 @@ class Pipeline:
             ucique = calculate_UCIQE(img)
             print(f"C++ Metrics: {perf_counter() - start}")
 
-            for color in np.unique(mask.reshape(-1, mask.shape[-1]), axis=0):
+            start = perf_counter()
+            colors = np.unique(mask.reshape(-1, mask.shape[-1]), axis=0)
+            print(f"colors calculation: {perf_counter() - start}")
+
+            for color in colors:
+
+                start = perf_counter()
                 label = self.colormap.get_label(tuple(int(c) for c in color))
+                print(f"colormap access: {perf_counter() - start}")
 
                 if label is None or label.split('_')[0] not in self.target_classes:
                     continue
